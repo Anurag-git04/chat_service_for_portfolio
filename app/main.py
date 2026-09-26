@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routers import chat
@@ -50,4 +50,16 @@ def rag_status():
     return {
         "rag_ready": True,
         "message": "Using static resume chunks with Gemini. FAISS RAG bypassed for speed."
+    }
+
+@app.get("/api/debug-ip")
+def debug_ip(request: Request):
+    """Temporary debug endpoint — shows what IP the server sees for rate limiting."""
+    from app.services.rate_limiter import get_client_ip
+    return {
+        "resolved_ip": get_client_ip(request),
+        "x_forwarded_for": request.headers.get("x-forwarded-for"),
+        "x_real_ip": request.headers.get("x-real-ip"),
+        "cf_connecting_ip": request.headers.get("cf-connecting-ip"),
+        "direct_host": request.client.host,
     }
